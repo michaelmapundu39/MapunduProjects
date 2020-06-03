@@ -1,0 +1,236 @@
+import java.util.Random;
+
+public class GeneticAlgorithm {
+
+	public static int NUMBER_places = 8;
+	public static int NUMBER_POPULATION = 10;
+
+	public static void main(String[] args) {
+
+		
+		boolean     showEvolution = true;
+		float mutationRate = (float) 0.5;
+		int numberOfEvolution = 3000;
+		
+		int[][] distance = { { 0, 36, 43, 79, 50, 129, 154, 131,},
+				{ 36, 0, 27, 64, 52, 119, 143, 96 },
+				{ 43, 27, 0, 33, 81, 146, 175, 116 },
+				{ 79, 64, 33, 0, 118, 179, 207, 141 },
+				{ 50, 52, 81, 118, 0, 79, 145,134 },
+				{ 129, 119, 146, 179, 79, 0, 105, 157 },
+				{ 154, 143, 175, 207, 145, 105, 0, 74 },
+				{ 131, 96, 116, 141, 134, 157, 74, 0 } };
+
+		String[] places = { "Edinburgh", "Stirling", "Glasgow", "Ayr", "St Andrews", "Aberdeen", "Inverness", "Fort William" };
+
+		int[][] chromosones = new int[NUMBER_POPULATION][NUMBER_places];
+		int[] outputs = new int[NUMBER_POPULATION];
+
+ 		generateChromosonesRandomly(chromosones);
+		calculateoutputs(chromosones, outputs, distance);
+		order(chromosones, outputs);
+		if (     showEvolution)
+			print(chromosones, outputs, places);
+
+		int i;
+		for (i = 0; i < numberOfEvolution; i++) {
+			renewChromosones(chromosones, outputs, mutationRate);
+			calculateoutputs(chromosones, outputs, distance);
+			order(chromosones, outputs);
+			if (     showEvolution) {
+				System.out.println("Generation: " + (i + 1));
+				print(chromosones, outputs, places);
+				break;
+			}
+		}
+
+		output(chromosones, outputs, places);
+
+	}
+
+	private static void output(int[][] chromosones, int[] outputs, String[] places) {
+		int i, i2;
+		i=0;
+		for (i2 = 0; i2 < NUMBER_places; i2++) {
+			System.out.print(places[chromosones[i][i2]] + " => ");
+		}
+		System.out.print(places[chromosones[i][0]] + " ");
+		System.out.println(" output: " + outputs[i]);
+
+	}
+
+	public static void renewChromosones(int[][] chromosones,
+			int[] outputs, float mutationRate) {
+
+		int beginExcludeds = (int) (mutationRate * 10);
+
+		int i, i2 = 0;
+
+		for (i = beginExcludeds; i < 10; i++) {
+
+			boolean valid = false;
+
+			while (!valid) {
+
+				int[] c_tmp = resetaCromossomo();
+
+				int father1, father2;
+
+				father1 = new Random().nextInt(beginExcludeds);
+				do {
+					father2 = new Random().nextInt(beginExcludeds);
+				} while ((father1 == father2)
+						&& (outputs[father1] != outputs[father2]));
+
+				for (i2 = 0; i2 < (int) NUMBER_places / 4; i2++) {
+					int pos;
+					pos = new Random().nextInt(NUMBER_places);
+					c_tmp[pos] = chromosones[father1][pos];
+				}
+				for (i2 = 0; i2 < (int) NUMBER_places / 4; i2++) {
+					int pos = new Random().nextInt(NUMBER_places);
+					if (c_tmp[pos] == -1) {
+						if (validValueInChromosone(chromosones[father2][pos],
+								c_tmp)) {
+							c_tmp[pos] = chromosones[father2][pos];
+						}
+					}
+				}
+
+				for (i2 = 0; i2 < NUMBER_places; i2++) {
+					if (c_tmp[i2] == -1) {
+						int crom_temp = validValueInChromosone(c_tmp);
+						c_tmp[i2] = crom_temp;
+					}
+				}
+
+				valid = validChromosone(c_tmp, chromosones);
+				if (valid) {
+					chromosones[i] = c_tmp;
+				}
+			}
+		}
+
+	}
+
+	private static int[][] generateChromosonesRandomly(int[][] chromosones) {
+
+		int[] c_tmp = new int[NUMBER_places];
+
+		int i, i2;
+		for (i = 0; i < NUMBER_POPULATION; i++) {
+			boolean crom_valid = false;
+			while (!crom_valid) {
+				crom_valid = true;
+				c_tmp = resetaCromossomo();
+
+				for (i2 = 0; i2 < NUMBER_places; i2++) {
+					c_tmp[i2] = validValueInChromosone(c_tmp);
+				}
+				crom_valid = validChromosone(c_tmp, chromosones);
+			}
+			chromosones[i] = c_tmp;
+		}
+		return chromosones;
+	}
+
+	private static int[] resetaCromossomo() {
+		int[] c = new int[NUMBER_places];
+		int i;
+		for (i = 0; i < NUMBER_places; i++) {
+			c[i] = -1;
+		}
+		return c;
+	}
+
+	private static int validValueInChromosone(int[] c_tmp) {
+		int crom_temp;
+		boolean valid;
+		do {
+			crom_temp = new Random().nextInt(NUMBER_places);
+			valid = true;
+			for (int ii = 0; ii < NUMBER_places; ii++) {
+				if (c_tmp[ii] == crom_temp)
+					valid = false;
+			}
+		} while (!valid);
+		return crom_temp;
+	}
+
+	private static boolean validValueInChromosone(int value, int[] c_tmp) {
+		int crom_temp = value;
+		boolean valid;
+
+		valid = true;
+		for (int ii = 0; ii < NUMBER_places; ii++) {
+			if (c_tmp[ii] == crom_temp)
+				valid = false;
+		}
+
+		return valid;
+	}
+
+	private static boolean validChromosone(int[] c_tmp, int[][] chromosones) {
+		int j, j2;
+		boolean crom_valid = true;
+
+		for (j = 0; j < NUMBER_POPULATION; j++) {
+			int n_equals = 0;
+			for (j2 = 0; j2 < NUMBER_places; j2++) {
+				if (c_tmp[j2] == chromosones[j][j2]) {
+					n_equals++;
+				}
+			}
+
+			if (n_equals == NUMBER_places)
+				crom_valid = false;
+		}
+		return crom_valid;
+	}
+
+	private static void print(int[][] chromosones, int[] outputs,
+			String[] places) {
+		int i, i2;
+		for (i = 0; i < NUMBER_POPULATION; i++) {
+			for (i2 = 0; i2 < NUMBER_places; i2++) {
+				System.out.print(places[chromosones[i][i2]] + " => ");
+			}
+			System.out.print(places[chromosones[i][0]] + " ");
+			System.out.println(" outputs: " + outputs[i]);
+		}
+	}
+
+	private static void calculateoutputs(int[][] chromosones,
+			int[] outputs, int[][] distance) {
+		int i, i2;
+		for (i = 0; i < NUMBER_POPULATION; i++) {
+			int resTmp = 0;
+			for (i2 = 0; i2 < NUMBER_places - 1; i2++) {
+				resTmp += distance[chromosones[i][i2]][chromosones[i][i2 + 1]];
+			}
+			resTmp+=distance[chromosones[i][0]][chromosones[i][i2]];
+			outputs[i] = resTmp;
+		}
+
+	}
+
+	private static void order(int[][] chromosones, int[] outputs) {
+		int i, i2;
+		for (i = 0; i < 10; i++) {
+			for (i2 = i; i2 < 10; i2++) {
+				if (outputs[i] > outputs[i2]) {
+					int vTmp;
+					int[] vvTmp = new int[10];
+					vTmp = outputs[i];
+					outputs[i] = outputs[i2];
+					outputs[i2] = vTmp;
+
+					vvTmp = chromosones[i];
+					chromosones[i] = chromosones[i2];
+					chromosones[i2] = vvTmp;
+				}
+			}
+		}
+	}
+
+}
