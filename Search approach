@@ -1,0 +1,85 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package search.approach;
+
+/**
+ *
+ * @author A0056407
+ */
+
+
+
+import java.util.Vector;
+import java.lang.*;
+import java.lang.String;
+//SearchApproach class
+
+public class SearchApproach{
+ String links[][] = {
+{"Edinburgh", "stirling"},
+{"stirling", "Glassgow"},
+{"Glassgow", "Ayr"},
+{"Ayr", "St Andrews"},
+{"St Andrews", "Aberdeen"},
+{"Aberdeen", "Inverness"},
+{"Inverness", "Fort William"},
+
+};
+
+String goal = "Fort William";
+
+//Successor function
+
+Vector getSuccessors (String location) {
+Vector successors = new Vector ();
+for (int i = 0; i < links.length; i++)
+{
+if (links[i][0].equals (location))
+{
+successors.add (links[i][1]);
+}
+if (links[i][1].equals (location))
+{
+successors.add (links[i][0]);
+}
+}
+return (successors);
+}
+@SuppressWarnings(value = "unchecked")
+
+//Main loop
+
+public void run()
+{
+Vector open = new Vector();
+Vector path = new Vector();
+path.add ("Edinburgh");
+open.add (path);
+while (open.size() > 0)
+{
+path = (Vector)open.remove(0);
+String parent =  (String)path.elementAt(path.size() - 1);
+if (parent.equals (goal)) {
+                                            System.out.println ("ROUTE: " + path);
+}
+Vector successors = getSuccessors (parent);
+for (int i = 0; i < successors.size (); i++)
+{
+String child = (String)successors.get(i);
+                                            if (!path.contains (child))
+{
+Vector newPath = (Vector) path.clone ();
+                                            newPath.add (child);
+                                                                                        open.add (newPath);
+}
+}
+}
+}
+public static void main(String args[]) { // do the search
+new SearchApproach().run();
+}
+}
+
